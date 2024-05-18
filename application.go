@@ -148,19 +148,19 @@ func (a *Application) draw() {
 }
 
 func (a *Application) drawTopBar() {
-	style := tcell.StyleDefault.Background(tcell.ColorBlack).Foreground(tcell.ColorReset)
+	style := tcell.StyleDefault.Background(tcell.ColorWhite).Foreground(tcell.ColorBlack)
 
 	for col := range a.width {
 		a.screen.SetContent(col, 0, ' ', nil, style)
 		col++
 	}
 
-	text := fmt.Sprintf("RibbIRC v0.1.0 [%dx%d]", a.width, a.height)
+	text := fmt.Sprintf("RibbIRC v0.1.0")
 	a.drawString(0, 0, text, style)
 }
 
 func (a *Application) drawBottomBar() {
-	style := tcell.StyleDefault.Background(tcell.ColorBlack).Foreground(tcell.ColorReset)
+	style := tcell.StyleDefault.Background(tcell.ColorWhite).Foreground(tcell.ColorBlack)
 
 	for col := range a.width {
 		a.screen.SetContent(col, a.height-2, ' ', nil, style)
