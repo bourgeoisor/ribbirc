@@ -213,7 +213,8 @@ func (a *Application) drawString(x int, y int, text string, style tcell.Style) {
 	col := x
 	for _, r := range []rune(text) {
 		a.screen.SetContent(col, row, r, nil, style)
-		col++
+		_, _, _, width := a.screen.GetContent(col, row)
+		col += width
 	}
 }
 
