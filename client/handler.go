@@ -56,6 +56,8 @@ func (s *Server) handleServerMessage(message *utils.Message) {
 		s.version = message.Parameters[2]
 		s.availableServerModes = message.Parameters[3]
 		s.availableChannelModes = message.Parameters[4]
+	case utils.RPL_ISUPPORT:
+		s.iSupport.parseRpl(message.Parameters[1 : len(message.Parameters)-1])
 	case utils.RPL_LUSERCLIENT:
 		s.log(message.Parameters[1])
 	case utils.RPL_LUSEROP:

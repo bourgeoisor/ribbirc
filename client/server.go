@@ -22,6 +22,7 @@ type Server struct {
 	motd                  []string
 	availableServerModes  string
 	availableChannelModes string
+	iSupport              *ISupport
 
 	conn           *tls.Conn
 	logs           *utils.Logger
@@ -37,7 +38,8 @@ func New(listener chan int, host string, port int, nick string) *Server {
 		username: nick,
 		realName: nick,
 
-		motd: make([]string, 0),
+		motd:     make([]string, 0),
+		iSupport: newISupport(),
 
 		logs:           utils.NewLogger(),
 		listener:       listener,
