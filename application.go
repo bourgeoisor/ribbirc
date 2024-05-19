@@ -80,14 +80,14 @@ func (a *Application) listenToChannel() {
 func (a *Application) handleKeyEvent(ev *tcell.EventKey) {
 	if ev.Modifiers() == tcell.ModAlt {
 		indexes := map[rune]int{'0': 0, '1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9}
+		channels := a.server.ChannelNames()
 		tab := indexes[ev.Rune()]
 		if tab == 0 {
 			a.channelTab = ""
-		} else {
-			a.channelTab = a.server.ChannelNames()[tab-1]
+		} else if tab <= len(channels) {
+			a.channelTab = channels[tab-1]
 		}
 		return
-		// @todo: more checks
 	}
 
 	switch ev.Key() {
@@ -155,7 +155,11 @@ func (a *Application) drawTopBar() {
 		col++
 	}
 
+	channel := a.currentChannel()
 	text := fmt.Sprintf("RibbIRC v0.1.0")
+	if channel != nil {
+		text += fmt.Sprintf(" / %s [%d users]", a.channelTab, channel.UserCount())
+	}
 	a.drawString(0, 0, text, style)
 }
 
@@ -179,10 +183,11 @@ func (a *Application) drawLogs() {
 	style := tcell.StyleDefault.Background(tcell.ColorReset).Foreground(tcell.ColorReset)
 
 	var logs []utils.Log
-	if a.channelTab == "" {
+	channel := a.currentChannel()
+	if channel == nil {
 		logs = a.server.GetLogger().GetNLogs(a.height-3, 0)
 	} else {
-		logs = a.server.ChannelLogger(a.channelTab).GetNLogs(a.height-3, 0)
+		logs = channel.GetLogger().GetNLogs(a.height-3, 0)
 	}
 
 	for row, log := range logs {
@@ -210,4 +215,12 @@ func (a *Application) drawString(x int, y int, text string, style tcell.Style) {
 		a.screen.SetContent(col, row, r, nil, style)
 		col++
 	}
+}
+
+func (a *Application) currentChannel() *client.Channel {
+	channel, err := a.server.GetChannel(a.channelTab)
+	if err != nil {
+		a.channelTab = ""
+	}
+	return channel
 }

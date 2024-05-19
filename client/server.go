@@ -77,8 +77,11 @@ func (s *Server) ChannelNames() []string {
 	return names
 }
 
-func (s *Server) ChannelLogger(name string) *utils.Logger {
-	return s.channelsJoined[name].logs
+func (s *Server) GetChannel(name string) (*Channel, error) {
+	if channel, ok := s.channelsJoined[name]; ok {
+		return channel, nil
+	}
+	return nil, fmt.Errorf("channel %s not found", name)
 }
 
 func (s *Server) SendMessage(message *utils.Message) {

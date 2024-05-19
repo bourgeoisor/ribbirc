@@ -23,6 +23,14 @@ func newChannel(name string) *Channel {
 	}
 }
 
+func (c *Channel) GetLogger() *utils.Logger {
+	return c.logs
+}
+
+func (c *Channel) UserCount() int {
+	return len(c.nicks)
+}
+
 func (c *Channel) log(nick string, text string) {
 	c.logs.Append(nick, text)
 }
