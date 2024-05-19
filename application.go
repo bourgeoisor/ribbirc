@@ -158,7 +158,10 @@ func (a *Application) drawTopBar() {
 	channel := a.currentChannel()
 	text := fmt.Sprintf("RibbIRC v0.1.0")
 	if channel != nil {
-		text += fmt.Sprintf(" / %s [%d users]", a.channelTab, channel.UserCount())
+		text += fmt.Sprintf(" / %s [%d users]", a.channelTab, len(channel.Nicks))
+		if channel.Topic != "" {
+			text += fmt.Sprintf(" - %s", channel.Topic)
+		}
 	}
 	a.drawString(0, 0, text, style)
 }
@@ -187,7 +190,7 @@ func (a *Application) drawLogs() {
 	if channel == nil {
 		logs = a.server.GetLogger().GetNLogs(a.height-3, 0)
 	} else {
-		logs = channel.GetLogger().GetNLogs(a.height-3, 0)
+		logs = channel.Logs.GetNLogs(a.height-3, 0)
 	}
 
 	for row, log := range logs {

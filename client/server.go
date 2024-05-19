@@ -71,7 +71,7 @@ func (s *Server) Connect() (err error) {
 func (s *Server) ChannelNames() []string {
 	names := make([]string, 0)
 	for _, channel := range s.channelsJoined {
-		names = append(names, channel.name)
+		names = append(names, channel.Name)
 	}
 	sort.Strings(names)
 	return names

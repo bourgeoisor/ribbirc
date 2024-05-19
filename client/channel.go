@@ -7,32 +7,24 @@ import (
 )
 
 type Channel struct {
-	name  string
-	topic string
+	Name  string
+	Topic string
 
 	mutex sync.Mutex
-	logs  *utils.Logger
-	nicks map[string]bool
+	Logs  *utils.Logger
+	Nicks map[string]bool
 }
 
 func newChannel(name string) *Channel {
 	return &Channel{
-		name:  name,
-		logs:  utils.NewLogger(),
-		nicks: make(map[string]bool),
+		Name:  name,
+		Logs:  utils.NewLogger(),
+		Nicks: make(map[string]bool),
 	}
 }
 
-func (c *Channel) GetLogger() *utils.Logger {
-	return c.logs
-}
-
-func (c *Channel) UserCount() int {
-	return len(c.nicks)
-}
-
 func (c *Channel) log(nick string, text string) {
-	c.logs.Append(nick, text)
+	c.Logs.Append(nick, text)
 }
 
 func (c *Channel) userMessage(nick string, text string) {
@@ -43,16 +35,27 @@ func (c *Channel) userJoin(nick string) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
-	c.nicks[nick] = true
+	c.Nicks[nick] = true
+	// @todo: handle prefixes
 	c.log(nick, "JOINED")
+}
+
+func (c *Channel) usersJoin(nicks []string) {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+
+	for _, nick := range nicks {
+		c.Nicks[nick] = true
+		// @todo: handle prefixes
+	}
 }
 
 func (c *Channel) userPart(nick string, reason string) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
-	if _, ok := c.nicks[nick]; ok {
-		delete(c.nicks, nick)
+	if _, ok := c.Nicks[nick]; ok {
+		delete(c.Nicks, nick)
 		c.log(nick, fmt.Sprintf("left <%s>", reason))
 	}
 }
@@ -61,8 +64,8 @@ func (c *Channel) userQuit(nick string, reason string) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
-	if _, ok := c.nicks[nick]; ok {
-		delete(c.nicks, nick)
+	if _, ok := c.Nicks[nick]; ok {
+		delete(c.Nicks, nick)
 		c.log(nick, fmt.Sprintf("left <%s>", reason))
 	}
 }

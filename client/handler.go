@@ -3,6 +3,7 @@ package client
 import (
 	"fmt"
 	"ribbirc/utils"
+	"strings"
 )
 
 func (s *Server) handleServerMessage(message *utils.Message) {
@@ -69,6 +70,14 @@ func (s *Server) handleServerMessage(message *utils.Message) {
 		s.log(message.Parameters[len(message.Parameters)-1])
 	case utils.RPL_GLOBALUSERS:
 		s.log(message.Parameters[len(message.Parameters)-1])
+	case utils.RPL_NOTOPIC: // <client> <channel> :No topic is set
+		s.channelsJoined[message.Parameters[1]].Topic = ""
+	case utils.RPL_TOPIC: // <client> <channel> :<topic>
+		s.channelsJoined[message.Parameters[1]].Topic = message.Parameters[2]
+	case utils.RPL_NAMREPLY: // <client> <symbol> <channel> :[prefix]<nick>{ [prefix]<nick>}
+		s.channelsJoined[message.Parameters[2]].usersJoin(strings.Split(message.Parameters[3], " "))
+	case utils.RPL_ENDOFNAMES: // <client> <channel> :End of /NAMES list
+		break
 	case utils.RPL_MOTDSTART:
 		s.motd = append(s.motd, message.Parameters[1])
 	case utils.RPL_MOTD:
