@@ -156,6 +156,60 @@ func (s *Server) handleServerMessage(message *utils.Message) {
 			s.log(m)
 		}
 
+	case utils.ERR_UNKNOWNERROR,
+		utils.ERR_NOSUCHNICK,
+		utils.ERR_NOSUCHSERVER,
+		utils.ERR_NOSUCHCHANNEL,
+		utils.ERR_CANNOTSENDTOCHAN,
+		utils.ERR_TOOMANYCHANNELS,
+		utils.ERR_WASNOSUCHNICK,
+		utils.ERR_NOORIGIN,
+		utils.ERR_NORECIPIENT,
+		utils.ERR_NOTEXTTOSEND,
+		utils.ERR_INPUTTOOLONG,
+		utils.ERR_UNKNOWNCOMMAND,
+		utils.ERR_NOMOTD,
+		utils.ERR_NONICKNAMEGIVEN,
+		utils.ERR_ERRONEUSNICKNAME,
+		utils.ERR_NICKNAMEINUSE,
+		utils.ERR_NICKCOLLISION,
+		utils.ERR_USERNOTINCHANNEL,
+		utils.ERR_NOTONCHANNEL,
+		utils.ERR_USERONCHANNEL,
+		utils.ERR_NOTREGISTERED,
+		utils.ERR_NEEDMOREPARAMS,
+		utils.ERR_ALREADYREGISTERED,
+		utils.ERR_PASSWDMISMATCH,
+		utils.ERR_YOUREBANNEDCREEP,
+		utils.ERR_CHANNELISFULL,
+		utils.ERR_UNKNOWNMODE,
+		utils.ERR_INVITEONLYCHAN,
+		utils.ERR_BANNEDFROMCHAN,
+		utils.ERR_BADCHANNELKEY,
+		utils.ERR_BADCHANMASK,
+		utils.ERR_NOPRIVILEGES,
+		utils.ERR_CHANOPRIVSNEEDED,
+		utils.ERR_CANTKILLSERVER,
+		utils.ERR_NOOPERHOST,
+		utils.ERR_UMODEUNKNOWNFLAG,
+		utils.ERR_USERSDONTMATCH,
+		utils.ERR_HELPNOTFOUND,
+		utils.ERR_INVALIDKEY,
+		utils.ERR_STARTTLS,
+		utils.ERR_INVALIDMODEPARAM,
+		utils.ERR_NOPRIVS,
+		utils.ERR_NICKLOCKED,
+		utils.ERR_SASLFAIL,
+		utils.ERR_SASLTOOLONG,
+		utils.ERR_SASLABORTED,
+		utils.ERR_SASLALREADY:
+		paramCount := len(message.Parameters)
+		text := message.Parameters[paramCount-1]
+		if paramCount > 1 {
+			text += fmt.Sprintf(" (%s)", strings.Join(message.Parameters[1:paramCount-1], ", "))
+		}
+		s.logs.Append(s.host, utils.LogError, text)
+
 	default:
 		text := fmt.Sprintf("Unimplemented reply: %s", utils.MarshalMessage(message))
 		s.logs.Append("System", utils.LogError, text)
