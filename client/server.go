@@ -95,6 +95,27 @@ func (s *Server) SendMessage(message *utils.Message) {
 	}
 }
 
+func (s *Server) HandleUserInput(input string, channel string) {
+	message := &utils.Message{}
+	if input[0] == '/' {
+		message = s.handleCommand(input, channel)
+		if message == nil {
+			return
+		}
+	} else {
+		if channel != "" {
+			message.Command = "PRIVMSG"
+			message.Parameters = []string{channel, input}
+			s.channelsJoined[channel].Logs.Append(s.nick, utils.LogPrivMsg, input)
+		} else {
+			s.SendMessage(utils.UnmarshalMessage(string(input)))
+			return
+		}
+	}
+
+	s.SendMessage(message)
+}
+
 func (s *Server) listenToMessages() {
 	defer s.conn.Close()
 	reader := bufio.NewReader(s.conn)

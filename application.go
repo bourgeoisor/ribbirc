@@ -114,7 +114,7 @@ func (a *Application) handleKeyEvent(ev *tcell.EventKey) {
 		if len(a.inputText) == 0 {
 			a.inputActive = !a.inputActive
 		} else {
-			a.server.SendMessage(utils.UnmarshalMessage(string(a.inputText)))
+			a.server.HandleUserInput(string(a.inputText), a.channelTab)
 			a.inputText = make([]rune, 0)
 			a.inputCursor = 0
 		}
@@ -237,6 +237,10 @@ func (a *Application) drawLog(row int, log utils.Log) int {
 		for i := row - height + 1; i <= row; i++ {
 			a.drawString(delimIndex, i, "│", style)
 		}
+	case utils.LogError:
+		style := baseStyle.Foreground(tcell.ColorRed)
+		height = a.drawStringWrap(len(log.Source)+2, row, log.Text, style)
+		a.drawString(0, row-height+1, fmt.Sprintf("%s:", log.Source), style)
 	case utils.LogStatus:
 		style := baseStyle.Foreground(tcell.ColorReset)
 		height = a.drawStringWrap(len(log.Source)+2, row, log.Text, style)

@@ -67,3 +67,16 @@ func (c *Channel) userPart(nick string, reason string) {
 func (c *Channel) userQuit(nick string, reason string) {
 	c.userLeave(nick, reason)
 }
+
+func (c *Channel) userNick(oldNick string, newNick string) {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+
+	if _, ok := c.Nicks[oldNick]; ok {
+		// @todo: handle prefixes
+		delete(c.Nicks, oldNick)
+		c.Nicks[newNick] = true
+		text := fmt.Sprintf("%s changed their nick to %s.", oldNick, newNick)
+		c.Logs.Append(oldNick, utils.LogSystem, text)
+	}
+}

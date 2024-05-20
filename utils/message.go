@@ -13,11 +13,11 @@ type Message struct {
 }
 
 func (m *Message) SourceNick() string {
-	index := strings.IndexByte(m.Source, '!')
-	if index == -1 {
-		return ""
-	}
-	return m.Source[:index]
+	return nickFromHost(m.Source)
+}
+
+func (m *Message) ParamNick(index int) string {
+	return nickFromHost(m.Parameters[index])
 }
 
 func UnmarshalMessage(payload string) *Message {
@@ -70,4 +70,12 @@ func MarshalMessage(message *Message) string {
 	}
 
 	return data
+}
+
+func nickFromHost(host string) string {
+	index := strings.IndexByte(host, '!')
+	if index == -1 {
+		return ""
+	}
+	return host[:index]
 }

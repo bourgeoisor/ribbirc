@@ -7,6 +7,7 @@ type LogKind int
 const (
 	LogPrivMsg LogKind = iota
 	LogSystem
+	LogError
 	LogStatus
 	LogJoined
 	LogLeft
