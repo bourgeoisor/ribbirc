@@ -16,6 +16,7 @@ type Application struct {
 
 	server     *client.Server
 	channelTab string
+	logsOffset int
 
 	inputActive bool
 	inputCursor int
@@ -49,6 +50,8 @@ func (a *Application) Run() error {
 		return err
 	}
 
+	a.screen.EnableMouse()
+
 	go a.listenToChannel()
 
 	for {
@@ -58,6 +61,8 @@ func (a *Application) Run() error {
 		case *tcell.EventResize:
 			a.width, a.height = ev.Size()
 			a.screen.Sync()
+		case *tcell.EventMouse:
+			a.handleMouseEvent(ev)
 		case *tcell.EventKey:
 			a.handleKeyEvent(ev)
 		}
@@ -77,6 +82,16 @@ func (a *Application) listenToChannel() {
 	}
 }
 
+func (a *Application) handleMouseEvent(ev *tcell.EventMouse) {
+	if ev.Buttons()&tcell.WheelUp > 0 {
+		a.logsOffsetUp()
+	}
+
+	if ev.Buttons()&tcell.WheelDown > 0 {
+		a.logsOffsetDown()
+	}
+}
+
 func (a *Application) handleKeyEvent(ev *tcell.EventKey) {
 	if ev.Modifiers() == tcell.ModAlt {
 		indexes := map[rune]int{'0': 0, '1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9}
@@ -87,6 +102,7 @@ func (a *Application) handleKeyEvent(ev *tcell.EventKey) {
 		} else if tab <= len(channels) {
 			a.channelTab = channels[tab-1]
 		}
+		a.logsOffset = 0
 		return
 	}
 
@@ -102,6 +118,10 @@ func (a *Application) handleKeyEvent(ev *tcell.EventKey) {
 			a.inputText = make([]rune, 0)
 			a.inputCursor = 0
 		}
+	case tcell.KeyPgUp:
+		a.logsOffsetUp()
+	case tcell.KeyPgDn:
+		a.logsOffsetDown()
 	default:
 	}
 
@@ -139,9 +159,9 @@ func (a *Application) draw() {
 
 	a.screen.Clear()
 
+	a.drawLogs()
 	a.drawTopBar()
 	a.drawBottomBar()
-	a.drawLogs()
 	a.drawInput()
 
 	a.screen.Show()
@@ -183,20 +203,53 @@ func (a *Application) drawBottomBar() {
 }
 
 func (a *Application) drawLogs() {
-	style := tcell.StyleDefault.Background(tcell.ColorReset).Foreground(tcell.ColorReset)
-
 	var logs []utils.Log
 	channel := a.currentChannel()
 	if channel == nil {
-		logs = a.server.GetLogger().GetNLogs(a.height-3, 0)
+		logs = a.server.GetLogger().GetNLogs(a.height-3, a.logsOffset)
 	} else {
-		logs = channel.Logs.GetNLogs(a.height-3, 0)
+		logs = channel.Logs.GetNLogs(a.height-3, a.logsOffset)
 	}
 
-	for row, log := range logs {
-		text := fmt.Sprintf("%s > %s", log.Source, log.Text)
-		a.drawString(0, row+1, text, style)
+	row := a.height - 3
+	for i := len(logs) - 1; i >= 0; i-- {
+		height := a.drawLog(row, logs[i])
+		row -= height
 	}
+}
+
+func (a *Application) drawLog(row int, log utils.Log) int {
+	baseStyle := tcell.StyleDefault.Background(tcell.ColorReset)
+	height := 1
+	delimIndex := 16
+
+	switch log.Kind {
+	case utils.LogPrivMsg:
+		style := baseStyle.Foreground(tcell.ColorReset)
+		height = a.drawStringWrap(delimIndex+2, row, log.Text, style)
+		a.drawString(delimIndex-len(log.Source)-1, row-height+1, log.Source, style)
+		for i := row - height + 1; i <= row; i++ {
+			a.drawString(delimIndex, i, "│", style)
+		}
+	case utils.LogSystem:
+		style := baseStyle.Foreground(tcell.ColorBlue)
+		height = a.drawStringWrap(delimIndex+2, row, log.Text, style)
+		for i := row - height + 1; i <= row; i++ {
+			a.drawString(delimIndex, i, "│", style)
+		}
+	case utils.LogStatus:
+		style := baseStyle.Foreground(tcell.ColorReset)
+		height = a.drawStringWrap(len(log.Source)+2, row, log.Text, style)
+		a.drawString(0, row-height+1, fmt.Sprintf("%s:", log.Source), style)
+	case utils.LogJoined:
+		style := baseStyle.Foreground(tcell.ColorGreen)
+		a.drawString(delimIndex, row, fmt.Sprintf("│ %s %s", log.Source, log.Text), style)
+	case utils.LogLeft:
+		style := baseStyle.Foreground(tcell.ColorRed)
+		a.drawString(delimIndex, row, fmt.Sprintf("│ %s %s", log.Source, log.Text), style)
+	}
+
+	return height
 }
 
 func (a *Application) drawInput() {
@@ -221,10 +274,44 @@ func (a *Application) drawString(x int, y int, text string, style tcell.Style) {
 	}
 }
 
+func (a *Application) drawStringWrap(x int, y int, text string, style tcell.Style) int {
+	chunks := make([]string, 0)
+	col := x
+	start := 0
+	for i, r := range []rune(text) {
+		a.screen.SetContent(col, 0, r, nil, style)
+		_, _, _, width := a.screen.GetContent(col, 0)
+		col += width
+		if col >= a.width-1 {
+			col = x
+			chunks = append(chunks, text[start:i])
+			start = i
+		}
+	}
+	chunks = append(chunks, text[start:])
+
+	for i, chunk := range chunks {
+		a.drawString(x, y+i-len(chunks)+1, chunk, style)
+	}
+
+	return len(chunks)
+}
+
 func (a *Application) currentChannel() *client.Channel {
 	channel, err := a.server.GetChannel(a.channelTab)
 	if err != nil {
 		a.channelTab = ""
 	}
 	return channel
+}
+
+func (a *Application) logsOffsetUp() {
+	a.logsOffset++
+}
+
+func (a *Application) logsOffsetDown() {
+	a.logsOffset--
+	if a.logsOffset < 0 {
+		a.logsOffset = 0
+	}
 }

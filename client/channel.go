@@ -23,12 +23,8 @@ func newChannel(name string) *Channel {
 	}
 }
 
-func (c *Channel) log(nick string, text string) {
-	c.Logs.Append(nick, text)
-}
-
 func (c *Channel) userMessage(nick string, text string) {
-	c.log(nick, text)
+	c.Logs.Append(nick, utils.LogPrivMsg, text)
 }
 
 func (c *Channel) userJoin(nick string) {
@@ -37,7 +33,7 @@ func (c *Channel) userJoin(nick string) {
 
 	c.Nicks[nick] = true
 	// @todo: handle prefixes
-	c.log(nick, "JOINED")
+	c.Logs.Append(nick, utils.LogJoined, "joined.")
 }
 
 func (c *Channel) usersJoin(nicks []string) {
@@ -50,22 +46,24 @@ func (c *Channel) usersJoin(nicks []string) {
 	}
 }
 
-func (c *Channel) userPart(nick string, reason string) {
+func (c *Channel) userLeave(nick string, reason string) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
 	if _, ok := c.Nicks[nick]; ok {
 		delete(c.Nicks, nick)
-		c.log(nick, fmt.Sprintf("left <%s>", reason))
+		text := "left."
+		if reason != "" {
+			text = fmt.Sprintf("left. <%s>", reason)
+		}
+		c.Logs.Append(nick, utils.LogLeft, text)
 	}
 }
 
-func (c *Channel) userQuit(nick string, reason string) {
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
+func (c *Channel) userPart(nick string, reason string) {
+	c.userLeave(nick, reason)
+}
 
-	if _, ok := c.Nicks[nick]; ok {
-		delete(c.Nicks, nick)
-		c.log(nick, fmt.Sprintf("left <%s>", reason))
-	}
+func (c *Channel) userQuit(nick string, reason string) {
+	c.userLeave(nick, reason)
 }

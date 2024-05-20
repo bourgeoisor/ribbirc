@@ -2,8 +2,19 @@ package utils
 
 import "sync"
 
+type LogKind int
+
+const (
+	LogPrivMsg LogKind = iota
+	LogSystem
+	LogStatus
+	LogJoined
+	LogLeft
+)
+
 type Log struct {
 	Source string
+	Kind   LogKind
 	Text   string
 }
 
@@ -19,11 +30,11 @@ func NewLogger() *Logger {
 	}
 }
 
-func (l *Logger) Append(source string, text string) {
+func (l *Logger) Append(source string, kind LogKind, text string) {
 	l.mutex.Lock()
 	defer l.mutex.Unlock()
 
-	l.logs = append(l.logs, Log{source, text})
+	l.logs = append(l.logs, Log{source, kind, text})
 	l.length++
 }
 

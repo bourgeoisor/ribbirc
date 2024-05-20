@@ -53,14 +53,14 @@ func (s *Server) GetLogger() *utils.Logger {
 
 func (s *Server) Connect() (err error) {
 	address := fmt.Sprintf("%s:%d", s.host, s.port)
-	s.logs.Append("System", fmt.Sprintf("Dialing %s...", address))
+	s.logs.Append("System", utils.LogStatus, fmt.Sprintf("Dialing %s...", address))
 
 	s.conn, err = tls.Dial("tcp", address, nil)
 	if err != nil {
 		return err
 	}
 
-	s.logs.Append("System", fmt.Sprintf("Connected to %s", address))
+	s.logs.Append("System", utils.LogStatus, fmt.Sprintf("Connected to %s", address))
 
 	go s.listenToMessages()
 
@@ -111,5 +111,5 @@ func (s *Server) listenToMessages() {
 }
 
 func (s *Server) log(text string) {
-	s.logs.Append(s.host, text)
+	s.logs.Append(s.host, utils.LogStatus, text)
 }

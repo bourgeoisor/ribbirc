@@ -76,6 +76,7 @@ func (s *Server) handleServerMessage(message *utils.Message) {
 		s.channelsJoined[message.Parameters[1]].Topic = ""
 	case utils.RPL_TOPIC: // <client> <channel> :<topic>
 		s.channelsJoined[message.Parameters[1]].Topic = message.Parameters[2]
+		s.channelsJoined[message.Parameters[1]].Logs.Append("*", utils.LogSystem, message.Parameters[2])
 	case utils.RPL_NAMREPLY: // <client> <symbol> <channel> :[prefix]<nick>{ [prefix]<nick>}
 		s.channelsJoined[message.Parameters[2]].usersJoin(strings.Split(message.Parameters[3], " "))
 	case utils.RPL_ENDOFNAMES: // <client> <channel> :End of /NAMES list
