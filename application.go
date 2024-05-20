@@ -310,11 +310,11 @@ func (a *Application) currentChannel() *client.Channel {
 }
 
 func (a *Application) logsOffsetUp() {
-	a.logsOffset++
+	a.logsOffset += 3
 }
 
 func (a *Application) logsOffsetDown() {
-	a.logsOffset--
+	a.logsOffset -= 3
 	if a.logsOffset < 0 {
 		a.logsOffset = 0
 	}
