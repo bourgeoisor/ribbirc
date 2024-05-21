@@ -19,7 +19,6 @@ type Server struct {
 
 	name                  string
 	version               string
-	motd                  []string
 	availableServerModes  string
 	availableChannelModes string
 	iSupport              *ISupport
@@ -28,6 +27,14 @@ type Server struct {
 	logs           *utils.Logger
 	listener       chan int
 	channelsJoined map[string]*Channel
+
+	bufferMotd  []string
+	bufferHelp  []string
+	bufferList  []string
+	bufferLinks []string
+	bufferInfo  []string
+	BufferWho   []string
+	BufferStats []string
 }
 
 func New(listener chan int, host string, port int, nick string) *Server {
@@ -38,12 +45,19 @@ func New(listener chan int, host string, port int, nick string) *Server {
 		username: nick,
 		realName: nick,
 
-		motd:     make([]string, 0),
 		iSupport: newISupport(),
 
 		logs:           utils.NewLogger(),
 		listener:       listener,
 		channelsJoined: make(map[string]*Channel),
+
+		bufferMotd:  make([]string, 0),
+		bufferHelp:  make([]string, 0),
+		bufferList:  make([]string, 0),
+		bufferLinks: make([]string, 0),
+		bufferInfo:  make([]string, 0),
+		BufferWho:   make([]string, 0),
+		BufferStats: make([]string, 0),
 	}
 }
 

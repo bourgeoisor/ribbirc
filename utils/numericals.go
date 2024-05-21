@@ -12,6 +12,7 @@ const (
 	RPL_ENDOFSTATS    string = "219"
 	RPL_UMODEIS       string = "221"
 	RPL_STATSUPTIME   string = "242"
+	RPL_STATSCONN     string = "250" // @todo: Non-standard
 	RPL_LUSERCLIENT   string = "251"
 	RPL_LUSEROP       string = "252"
 	RPL_LUSERUNKNOWN  string = "253"
