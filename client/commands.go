@@ -145,7 +145,8 @@ func (s *Server) handleCommand(input string, channel string) *utils.Message {
 			message.Parameters = append(message.Parameters, parts[2])
 		}
 
-	case "/part":
+	case "/part",
+		"/leave":
 		if paramCount < 1 {
 			s.invalidCommandParameters("/part <channel>{,<channel>} [<reason>]")
 			return nil
